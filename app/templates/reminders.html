@@ -1,0 +1,267 @@
+﻿{% extends "base.html" %}
+{% block title %}Reminders{% endblock %}
+{% block content %}
+<div style="max-width:480px;margin:0 auto;padding:20px;">
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
+        <a href="/" style="color:var(--accent);text-decoration:none;font-size:20px;">&#8592;</a>
+        <h2 style="margin:0;" id="rem-title">Reminders</h2>
+    </div>
+
+    <div id="perm-banner" style="display:none;background:#1a1a2e;border:1px solid #e74c3c;border-radius:16px;padding:16px;margin-bottom:16px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:8px;">&#128277;</div>
+        <div style="font-size:14px;color:#ccc;margin-bottom:12px;" id="perm-text"></div>
+        <button onclick="requestPerm()" id="perm-btn" style="background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:12px;font-size:14px;cursor:pointer;">Allow</button>
+    </div>
+
+    <div id="rem-cards"></div>
+
+    <div style="margin-top:24px;">
+        <h3 style="margin:0 0 12px;" id="active-title">Active</h3>
+        <div id="active-list"></div>
+        <div id="no-active" style="display:none;text-align:center;padding:20px;color:#666;font-size:14px;">No active</div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+try{
+
+var RK="nutriflow_reminders";
+var intervalTimers={};
+var timeCheckers={};
+
+function T(k){
+    var lang;
+    try{lang=L();}catch(e){lang="ru";}
+    try{return TRANSLATIONS[lang][k]||TRANSLATIONS["ru"][k]||k;}catch(e){return k;}
+}
+
+var CARDS=[
+    {id:"water",icon:"\uD83D\uDCA7",tk:"rem_water_title",dk:"rem_water_desc",type:"interval",intervals:[60,90,120,180],di:120},
+    {id:"food",icon:"\uD83C\uDF7D\uFE0F",tk:"rem_food_title",dk:"rem_food_desc",type:"times",dt:["08:00","12:30","18:30"]},
+    {id:"weight",icon:"\u2696\uFE0F",tk:"rem_weight_title",dk:"rem_weight_desc",type:"times",dt:["08:00"]},
+    {id:"steps",icon:"\uD83D\uDEB6",tk:"rem_steps_title",dk:"rem_steps_desc",type:"interval",intervals:[60,90,120],di:90}
+];
+
+function gs(){try{return JSON.parse(localStorage.getItem(RK))||{};}catch(e){return {};}}
+function ss(o){localStorage.setItem(RK,JSON.stringify(o));}
+
+function sendNotif(title,body){
+    if(!("Notification" in window))return;
+    if(Notification.permission!=="granted")return;
+    try{
+        var n=new Notification(title,{body:body});
+        n.onclick=function(){window.focus();n.close();};
+    }catch(e){}
+}
+
+function stopAll(){
+    var k;
+    for(k in intervalTimers){clearInterval(intervalTimers[k]);delete intervalTimers[k];}
+    for(k in timeCheckers){clearInterval(timeCheckers[k]);delete timeCheckers[k];}
+}
+
+function startTimers(){
+    stopAll();
+    var saved=gs();
+    CARDS.forEach(function(c){
+        var s=saved[c.id];
+        if(!s||!s.enabled)return;
+
+        if(c.type==="interval"){
+            var mins=s.interval||c.di;
+            intervalTimers[c.id]=setInterval(function(){
+                sendNotif(c.icon+" "+T(c.tk),T(c.dk));
+            },mins*60*1000);
+        }
+
+        if(c.type==="times"){
+            var tlist=s.times||c.dt;
+            var fired={};
+            timeCheckers[c.id]=setInterval(function(){
+                var now=new Date();
+                var hm=("0"+now.getHours()).slice(-2)+":"+("0"+now.getMinutes()).slice(-2);
+                tlist.forEach(function(t){
+                    if(hm===t&&!fired[t]){
+                        fired[t]=true;
+                        sendNotif(c.icon+" "+T(c.tk),t);
+                        setTimeout(function(){delete fired[t];},120000);
+                    }
+                });
+            },30000);
+        }
+    });
+}
+
+function checkPerm(){
+    if(!("Notification" in window)){
+        document.getElementById("perm-banner").style.display="none";
+        return;
+    }
+    if(Notification.permission==="granted"){
+        document.getElementById("perm-banner").style.display="none";
+    }else if(Notification.permission==="denied"){
+        document.getElementById("perm-banner").style.display="block";
+        document.getElementById("perm-btn").style.display="none";
+        document.getElementById("perm-text").textContent=T("rem_perm_blocked");
+    }else{
+        document.getElementById("perm-banner").style.display="block";
+    }
+}
+
+window.requestPerm=function(){
+    Notification.requestPermission().then(function(p){
+        checkPerm();
+        if(p==="granted")startTimers();
+    });
+};
+
+function render(){
+    var g=document.getElementById("rem-cards");
+    g.innerHTML="";
+    var saved=gs();
+
+    CARDS.forEach(function(c){
+        var s=saved[c.id]||{};
+        var on=!!s.enabled;
+
+        var html='<div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;">';
+        html+='<div style="display:flex;align-items:center;gap:14px;">';
+        html+='<div style="font-size:32px;width:48px;text-align:center;">'+c.icon+'</div>';
+        html+='<div style="flex:1"><div style="font-weight:600;font-size:15px;">'+T(c.tk)+'</div>';
+        if(c.id!=="weight"){html+='<div style="font-size:12px;color:#888;margin-top:2px;">'+T(c.dk)+'</div>';}
+        html+='</div>';
+
+        html+='<div onclick="tog(\''+c.id+'\','+(!on)+')" style="width:48px;height:28px;border-radius:14px;background:'+(on?"var(--accent)":"#444")+';position:relative;cursor:pointer;flex-shrink:0;">';
+        html+='<div style="position:absolute;top:2px;'+(on?"right:2px":"left:2px")+';width:24px;height:24px;border-radius:50%;background:#fff;transition:.3s;"></div></div>';
+        html+='</div>';
+
+        if(c.type==="interval"){
+            var cur=s.interval||c.di;
+            html+='<div style="margin-top:10px;padding-left:62px;display:flex;gap:6px;flex-wrap:wrap;">';
+            c.intervals.forEach(function(m){
+                var sel=(cur===m&&on);
+                html+='<button onclick="si(\''+c.id+'\','+m+')" style="padding:5px 12px;border-radius:8px;border:1px solid '+(sel?"var(--accent)":"#444")+';background:'+(sel?"var(--accent)":"transparent")+';color:'+(sel?"#fff":"#aaa")+';font-size:12px;cursor:pointer;">'+m+' '+T("rem_min")+'</button>';
+            });
+            html+='</div>';
+        }
+
+        if(c.type==="times"){
+            var ttimes=s.times||c.dt;
+            html+='<div style="margin-top:10px;padding-left:62px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">';
+            ttimes.forEach(function(t,i){
+                html+='<input type="time" value="'+t+'" onchange="ut(\''+c.id+'\','+i+',this.value)" style="padding:5px 8px;border-radius:8px;border:1px solid #444;background:#1a1a2e;color:#fff;font-size:13px;">';
+            });
+            html+='<button onclick="at(\''+c.id+'\')" style="width:32px;height:32px;border-radius:8px;border:1px dashed #555;background:transparent;color:#888;font-size:18px;cursor:pointer;">+</button>';
+            if(ttimes.length>1){
+                html+='<button onclick="rt(\''+c.id+'\')" style="width:32px;height:32px;border-radius:8px;border:1px dashed #555;background:transparent;color:#e74c3c;font-size:18px;cursor:pointer;">&minus;</button>';
+            }
+            html+='</div>';
+        }
+
+        html+='</div>';
+        var div=document.createElement("div");
+        div.innerHTML=html;
+        g.appendChild(div.firstChild);
+    });
+
+    renderActive(saved);
+    startTimers();
+}
+
+function renderActive(saved){
+    var list=document.getElementById("active-list");
+    var noEl=document.getElementById("no-active");
+    list.innerHTML="";
+    var count=0;
+    CARDS.forEach(function(c){
+        var s=saved[c.id];
+        if(!s||!s.enabled)return;
+        count++;
+        var detail="";
+        if(c.type==="interval"){detail=T("rem_every")+" "+(s.interval||c.di)+" "+T("rem_min");}
+        if(c.type==="times"){detail=(s.times||c.dt).join(", ");}
+        var d=document.createElement("div");
+        d.style.cssText="background:var(--card);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;";
+        d.innerHTML='<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">'+c.icon+'</span><div><div style="font-size:14px;font-weight:500;">'+T(c.tk)+'</div><div style="font-size:11px;color:#888;">'+detail+'</div></div></div><button onclick="tog(\''+c.id+'\',false)" style="background:none;border:none;color:#e74c3c;font-size:18px;cursor:pointer;">&times;</button>';
+        list.appendChild(d);
+    });
+    noEl.style.display=count===0?"block":"none";
+}
+
+window.tog=function(id,on){
+    if(on&&"Notification" in window&&Notification.permission==="default"){
+        Notification.requestPermission().then(function(p){
+            checkPerm();
+            if(p==="granted"){doTog(id,true);}
+        });
+        return;
+    }
+    if(on&&"Notification" in window&&Notification.permission==="denied"){
+        alert(T("rem_perm_blocked"));
+        return;
+    }
+    doTog(id,on);
+};
+
+function doTog(id,on){
+    var saved=gs();
+    if(!saved[id])saved[id]={};
+    saved[id].enabled=on;
+    var c=CARDS.find(function(x){return x.id===id;});
+    if(c&&c.type==="interval"&&!saved[id].interval)saved[id].interval=c.di;
+    if(c&&c.type==="times"&&!saved[id].times)saved[id].times=c.dt.slice();
+    ss(saved);
+    render();
+}
+
+window.si=function(id,mins){
+    var saved=gs();
+    if(!saved[id])saved[id]={};
+    saved[id].interval=mins;saved[id].enabled=true;
+    ss(saved);render();
+};
+
+window.ut=function(id,idx,val){
+    var saved=gs();
+    if(!saved[id])saved[id]={};
+    var c=CARDS.find(function(x){return x.id===id;});
+    if(!saved[id].times)saved[id].times=c.dt.slice();
+    saved[id].times[idx]=val;
+    saved[id].enabled=true;
+    ss(saved);render();
+};
+
+window.at=function(id){
+    var saved=gs();
+    if(!saved[id])saved[id]={};
+    var c=CARDS.find(function(x){return x.id===id;});
+    if(!saved[id].times)saved[id].times=c.dt.slice();
+    saved[id].times.push("12:00");
+    saved[id].enabled=true;
+    ss(saved);render();
+};
+
+window.rt=function(id){
+    var saved=gs();
+    if(!saved[id]||!saved[id].times||saved[id].times.length<=1)return;
+    saved[id].times.pop();
+    ss(saved);render();
+};
+
+document.getElementById("rem-title").textContent=T("rem_title");
+document.getElementById("perm-text").textContent=T("rem_perm_text");
+document.getElementById("perm-btn").textContent=T("rem_perm_btn");
+document.getElementById("active-title").textContent=T("rem_active");
+document.getElementById("no-active").textContent=T("rem_no_active");
+
+checkPerm();
+render();
+
+}catch(e){
+    document.getElementById("rem-cards").innerHTML='<div style="color:red;padding:20px;">Error: '+e.message+'</div>';
+}
+});
+</script>
+{% endblock %}

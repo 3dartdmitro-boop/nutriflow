@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Food - NutriFlow{% endblock %}
+{% block content %}
+<section class="page">
+    <h2 data-i18n="food_title">Дневник еды</h2>
+    <p class="muted" data-i18n="food_subtitle">Выбери приём пищи и добавь продукты</p>
+
+    <div class="food-ring-container" style="text-align:center;margin:20px 0">
+        <div style="position:relative;width:140px;height:140px;margin:0 auto">
+            <svg class="progress-ring" width="140" height="140">
+                <circle class="progress-ring-bg" cx="70" cy="70" r="60"/>
+                <circle class="progress-ring-fill" id="food-cal-ring" cx="70" cy="70" r="60"/>
+            </svg>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center">
+                <strong id="food-cal-eaten" style="font-size:28px">0</strong>
+                <span style="font-size:12px"><span data-i18n="of">из</span> <span id="food-cal-target">2000</span></span>
+            </div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:16px;margin-top:12px">
+            <span class="food-macro"><span data-i18n="p_short">Б</span>: <strong id="food-prot">0</strong></span>
+            <span class="food-macro"><span data-i18n="f_short">Ж</span>: <strong id="food-fat">0</strong></span>
+            <span class="food-macro"><span data-i18n="c_short">У</span>: <strong id="food-carb">0</strong></span>
+        </div>
+    </div>
+
+    <div class="meal-tabs">
+        <button class="meal-btn active" data-meal="breakfast" data-i18n="breakfast">Завтрак</button>
+        <button class="meal-btn" data-meal="lunch" data-i18n="lunch">Обед</button>
+        <button class="meal-btn" data-meal="dinner" data-i18n="dinner">Ужин</button>
+        <button class="meal-btn" data-meal="snack" data-i18n="snack">Перекус</button>
+    </div>
+
+    <div class="glass-card" style="margin-top:16px">
+        <input type="text" id="product-search" class="search-input" data-i18n="search_placeholder" placeholder="Поиск продукта...">
+        <div id="product-list" class="product-list"></div>
+    </div>
+
+    <div class="glass-card" style="margin-top:16px">
+        <h3 id="meal-log-title" style="margin-bottom:12px">Завтрак</h3>
+        <div id="food-log"></div>
+    </div>
+</section>
+
+<div id="gram-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <h3 id="gram-modal-title"></h3>
+        <p class="muted" id="gram-modal-info"></p>
+        <div style="margin:16px 0">
+            <label style="font-size:14px" data-i18n="grams_label">Граммы</label>
+            <input type="number" id="gram-input" value="100" min="1" max="2000" class="search-input" style="margin-top:6px">
+        </div>
+        <div id="gram-preview" style="font-size:14px;margin-bottom:16px"></div>
+        <div style="display:flex;gap:10px">
+            <button id="gram-cancel" class="btn btn-glass" style="flex:1" data-i18n="cancel">Отмена</button>
+            <button id="gram-confirm" class="btn btn-primary" style="flex:1" data-i18n="add">Добавить</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

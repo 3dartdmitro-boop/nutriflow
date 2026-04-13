@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}NutriFlow - Профиль{% endblock %}
+{% block content %}
+<section class="page" id="profile-page">
+    <div id="auth-section">
+        <div style="text-align:center;margin-bottom:24px;">
+            <div style="font-size:48px;margin-bottom:8px;">🍏</div>
+            <h1 style="margin:0;font-size:28px;">NutriFlow</h1>
+            <p class="muted" style="margin-top:4px;" data-i18n="auth_subtitle">Войди чтобы продолжить</p>
+        </div>
+        <form id="login-form" class="form-grid" style="margin-top:16px">
+            <label>Email <input type="email" name="email" required placeholder="email@example.com"></label>
+            <label><span data-i18n="password">Пароль</span> <input type="password" name="password" required placeholder="••••••"></label>
+            <button type="submit" class="btn btn-primary full-width" data-i18n="login_btn">Войти</button>
+        </form>
+        <p class="muted" style="text-align:center;margin-top:12px">
+            <span data-i18n="no_account">Нет аккаунта?</span>
+            <a href="#" id="show-register" style="color:var(--accent)" data-i18n="register_link">Зарегистрироваться</a>
+        </p>
+        <form id="register-form" class="form-grid hidden" style="margin-top:16px">
+            <label><span data-i18n="your_name">Имя</span> <input type="text" name="name" required placeholder="Имя"></label>
+            <label>Email <input type="email" name="email" required placeholder="email@example.com"></label>
+            <label><span data-i18n="password">Пароль</span> <input type="password" name="password" required minlength="6" placeholder="мин. 6 символов"></label>
+            <button type="submit" class="btn btn-primary full-width" data-i18n="register_btn">Создать аккаунт</button>
+        </form>
+        <p class="muted" style="text-align:center;margin-top:12px;display:none" id="show-login-wrap">
+            <span data-i18n="have_account">Есть аккаунт?</span>
+            <a href="#" id="show-login" style="color:var(--accent)" data-i18n="login_link">Войти</a>
+        </p>
+        <p id="auth-error" class="muted" style="color:#ff453a;text-align:center;margin-top:8px"></p>
+    </div>
+    <div id="profile-section" class="hidden">
+        <div style="text-align:center;margin-bottom:20px">
+            <div id="avatar-wrap" style="width:90px;height:90px;border-radius:50%;overflow:hidden;margin:0 auto 12px;background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;border:3px solid var(--accent)">
+                <img id="avatar-img" src="" style="width:100%;height:100%;object-fit:cover;display:none">
+                <span id="avatar-letter" style="font-size:36px;font-weight:700;color:var(--accent)"></span>
+            </div>
+            <input type="file" id="avatar-input" accept="image/*" style="display:none">
+            <p class="muted" style="font-size:12px" data-i18n="tap_avatar">Нажми на аватар чтобы изменить</p>
+        </div>
+        <form id="profile-form" class="form-grid">
+            <label><span data-i18n="your_name">Имя</span> <input type="text" name="name" id="profile-name" required></label>
+            <label>Email <input type="email" id="profile-email" disabled style="opacity:0.6"></label>
+            <button type="submit" class="btn btn-primary full-width" data-i18n="save">Сохранить</button>
+        </form>
+        <button id="logout-btn" class="btn btn-glass full-width" style="margin-top:12px;color:#ff453a" data-i18n="logout">Выйти</button>
+        <a href="/onboarding" class="btn btn-glass full-width" style="margin-top:12px;text-align:center;text-decoration:none;display:block" data-i18n="edit_body_data">⚙️ Изменить данные тела</a>
+    </div>
+</section>
+{% endblock %}

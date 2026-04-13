@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}NutriFlow{% endblock %}
+{% block content %}
+<section class="page">
+    <h2 data-i18n="water_title">Водный баланс</h2>
+    <p class="muted" data-i18n="water_goal">Цель: 2500 мл в день</p>
+    <div class="water-circle-container">
+        <svg class="progress-ring" width="200" height="200">
+            <circle class="progress-ring-bg" cx="100" cy="100" r="86"/>
+            <circle class="progress-ring-fill water-ring" id="water-ring" cx="100" cy="100" r="86"/>
+        </svg>
+        <div class="progress-ring-text">
+            <strong id="water-total">0</strong>
+            <span>/ 2500 <span data-i18n="ml">мл</span></span>
+        </div>
+    </div>
+    <div class="water-buttons">
+        <button class="water-btn" data-ml="150">+150</button>
+        <button class="water-btn" data-ml="250">+250</button>
+        <button class="water-btn" data-ml="330">+330</button>
+        <button class="water-btn" data-ml="500">+500</button>
+    </div>
+    <div class="card" style="margin-top:16px">
+        <form id="water-custom-form">
+            <label><span data-i18n="custom_amount">Своё количество (мл)</span>
+                <div style="display:flex;gap:10px">
+                    <input type="number" name="custom_ml" placeholder="350" min="1" max="5000" required style="flex:1">
+                    <button type="submit" class="btn btn-primary" style="padding:14px 24px">+</button>
+                </div>
+            </label>
+        </form>
+    </div>
+    <div style="margin-top:16px">
+        <button id="undo-water-btn" class="btn btn-undo full-width" data-i18n="undo_last">Отменить последнее</button>
+    </div>
+    <h3 class="section-title" data-i18n="today_added">История за сегодня</h3>
+    <div id="water-history" class="water-history-list"></div>
+</section>
+{% endblock %}

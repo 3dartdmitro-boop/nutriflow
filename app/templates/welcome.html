@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>NutriFlow</title>
+<link rel="stylesheet" href="/static/css/style.css?v=950">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+.wp{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;text-align:center;position:relative;overflow:hidden;max-width:430px;margin:0 auto}
+.wbg{position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 20%,rgba(0,113,227,0.12),transparent 50%),radial-gradient(circle at 70% 80%,rgba(52,199,89,0.1),transparent 50%);animation:bf 8s ease-in-out infinite alternate;z-index:0}
+@keyframes bf{0%{transform:translate(0,0)}100%{transform:translate(-20px,20px)}}
+.wc{position:relative;z-index:1;width:100%}
+.wtop{display:flex;justify-content:center;gap:8px;margin-bottom:24px;animation:fu .6s ease .1s both}
+.wb{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;backdrop-filter:blur(18px);transition:all .2s;padding:0}
+.wb:active{transform:scale(0.92)}
+.wlogo{width:88px;height:88px;border-radius:24px;background:linear-gradient(135deg,#0071e3,#34c759);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 12px 40px rgba(0,113,227,0.3);animation:li .8s ease}
+@keyframes li{0%{transform:scale(0.5);opacity:0}100%{transform:scale(1);opacity:1}}
+.wh1{font-size:38px;font-weight:800;letter-spacing:-0.03em;margin-bottom:6px;background:linear-gradient(135deg,var(--text),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:fu .8s ease .2s both}
+.wsub{color:var(--muted);font-size:15px;line-height:1.5;margin-bottom:24px;animation:fu .8s ease .3s both}
+@keyframes fu{0%{transform:translateY(20px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.wlist{display:grid;gap:10px;margin-bottom:28px}
+.wi{display:flex;align-items:center;gap:14px;text-align:left;padding:14px 16px;border-radius:16px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(18px);box-shadow:0 2px 10px rgba(0,0,0,0.04);height:68px}
+.wi:nth-child(1){animation:fu .5s ease .35s both}
+.wi:nth-child(2){animation:fu .5s ease .45s both}
+.wi:nth-child(3){animation:fu .5s ease .55s both}
+.wi:nth-child(4){animation:fu .5s ease .65s both}
+.wic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.wic.c1{background:rgba(0,113,227,0.1)}.wic.c2{background:rgba(90,200,250,0.15)}.wic.c3{background:rgba(52,199,89,0.1)}.wic.c4{background:rgba(255,149,0,0.1)}
+.wt{flex:1}.wt strong{font-size:14px;display:block;margin-bottom:1px}.wt span{font-size:12px;color:var(--muted)}
+.wacts{display:grid;gap:10px;animation:fu .8s ease .75s both}
+.bw{padding:16px;border-radius:16px;font-weight:700;font-size:16px;text-decoration:none;border:none;cursor:pointer;text-align:center;display:block;transition:all .2s}
+.bw:active{transform:scale(0.97)}
+.bwp{background:linear-gradient(135deg,#0071e3,#0077ED);color:#fff;box-shadow:0 6px 20px rgba(0,113,227,0.3)}
+.bwg{background:var(--card);color:var(--text);border:1px solid var(--line);backdrop-filter:blur(18px)}
+body.dark .wi{background:rgba(44,44,46,0.8);border-color:rgba(255,255,255,0.06)}
+body.dark .bwg{background:rgba(44,44,46,0.8);color:#f5f5f7;border-color:rgba(255,255,255,0.1)}
+body.dark .wb{background:rgba(44,44,46,0.8);border-color:rgba(255,255,255,0.1);color:#f5f5f7}
+body.dark .wbg{background:radial-gradient(circle at 30% 20%,rgba(0,113,227,0.08),transparent 50%),radial-gradient(circle at 70% 80%,rgba(52,199,89,0.06),transparent 50%)}
+</style>
+</head>
+<body>
+<div class="wp">
+<div class="wbg"></div>
+<div class="wc">
+<div class="wtop">
+<button class="wb" onclick="tTh()" id="tb">&#x1F319;</button>
+<button class="wb" onclick="tLn()" id="lb" style="width:auto;padding:0 14px;font-weight:700;font-size:14px">EN</button>
+</div>
+<div class="wlogo">
+<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+</div>
+<h1 class="wh1">NutriFlow</h1>
+<p class="wsub" id="ws"></p>
+<div class="wlist">
+<div class="wi"><div class="wic c1">&#x1F525;</div><div class="wt"><strong id="a1"></strong><span id="b1"></span></div></div>
+<div class="wi"><div class="wic c2">&#x1F4A7;</div><div class="wt"><strong id="a2"></strong><span id="b2"></span></div></div>
+<div class="wi"><div class="wic c3">&#x1F4C8;</div><div class="wt"><strong id="a3"></strong><span id="b3"></span></div></div>
+<div class="wi"><div class="wic c4">&#x1F3AF;</div><div class="wt"><strong id="a4"></strong><span id="b4"></span></div></div>
+</div>
+<div class="wacts">
+<a href="/register" class="bw bwp" id="bs"></a>
+<a href="/login" class="bw bwg" id="bl"></a>
+</div>
+</div>
+</div>
+<script>
+var L=localStorage.getItem("lang")||"ru",
+    D=localStorage.getItem("theme")||"light";
+var R={
+sub:"\u0423\u043c\u043d\u044b\u0439 \u0442\u0440\u0435\u043a\u0435\u0440 \u043f\u0438\u0442\u0430\u043d\u0438\u044f, \u0432\u043e\u0434\u044b \u0438 \u0432\u0435\u0441\u0430.\n\u041a\u0430\u0436\u0434\u044b\u0439 \u0434\u0435\u043d\u044c \u2014 \u0448\u0430\u0433 \u043a \u0446\u0435\u043b\u0438.",
+a1:"\u041a\u0430\u043b\u043e\u0440\u0438\u0438 \u0438 \u041a\u0411\u0416\u0423",b1:"\u041f\u043e\u043b\u043d\u044b\u0439 \u043a\u043e\u043d\u0442\u0440\u043e\u043b\u044c \u0440\u0430\u0446\u0438\u043e\u043d\u0430",
+a2:"\u0422\u0440\u0435\u043a\u0435\u0440 \u0432\u043e\u0434\u044b",b2:"\u0412\u043e\u0434\u043d\u044b\u0439 \u0431\u0430\u043b\u0430\u043d\u0441 \u043a\u0430\u0436\u0434\u044b\u0439 \u0434\u0435\u043d\u044c",
+a3:"\u0414\u0438\u043d\u0430\u043c\u0438\u043a\u0430 \u0432\u0435\u0441\u0430",b3:"\u0413\u0440\u0430\u0444\u0438\u043a\u0438 \u0438 \u043f\u0440\u043e\u0433\u0440\u0435\u0441\u0441",
+a4:"\u0423\u043c\u043d\u044b\u0435 \u0446\u0435\u043b\u0438",b4:"\u041f\u0435\u0440\u0441\u043e\u043d\u0430\u043b\u044c\u043d\u044b\u0435 \u0440\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u0438",
+s:"\u041d\u0430\u0447\u0430\u0442\u044c",l:"\u0423\u0436\u0435 \u0435\u0441\u0442\u044c \u0430\u043a\u043a\u0430\u0443\u043d\u0442? \u0412\u043e\u0439\u0442\u0438"};
+var E={sub:"Smart nutrition, water & weight tracker.\nEvery day is a step toward your goal.",
+a1:"Calories & Macros",b1:"Full diet control",
+a2:"Water Tracker",b2:"Daily hydration balance",
+a3:"Weight Dynamics",b3:"Charts and progress",
+a4:"Smart Goals",b4:"Personal recommendations",
+s:"Get Started",l:"Already have an account? Sign in"};
+function aL(){var t=L==="ru"?R:E;
+document.getElementById("ws").innerHTML=t.sub.replace("\n","<br>");
+document.getElementById("a1").textContent=t.a1;document.getElementById("b1").textContent=t.b1;
+document.getElementById("a2").textContent=t.a2;document.getElementById("b2").textContent=t.b2;
+document.getElementById("a3").textContent=t.a3;document.getElementById("b3").textContent=t.b3;
+document.getElementById("a4").textContent=t.a4;document.getElementById("b4").textContent=t.b4;
+document.getElementById("bs").textContent=t.s;document.getElementById("bl").textContent=t.l;
+document.getElementById("lb").textContent=L==="ru"?"EN":"RU"}
+function aT(){if(D==="dark"){document.body.classList.add("dark");document.getElementById("tb").textContent="\u2600\uFE0F"}else{document.body.classList.remove("dark");document.getElementById("tb").textContent="\uD83C\uDF19"}}
+function tTh(){D=D==="dark"?"light":"dark";localStorage.setItem("theme",D);aT()}
+function tLn(){L=L==="ru"?"en":"ru";localStorage.setItem("lang",L);aL()}
+aT();aL();
+</script>
+</body>
+</html>

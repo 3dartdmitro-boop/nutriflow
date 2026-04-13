@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}History - NutriFlow{% endblock %}
+{% block content %}
+<section class="page">
+    <h2 data-i18n="history_title">История</h2>
+    <div class="glass-card" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <button id="cal-prev" class="btn btn-glass" style="padding:6px 12px">←</button>
+            <strong id="cal-month-label"></strong>
+            <button id="cal-next" class="btn btn-glass" style="padding:6px 12px">→</button>
+        </div>
+        <div id="calendar-grid" class="calendar-grid"></div>
+    </div>
+    <div id="day-detail" class="hidden" style="margin-top:16px">
+        <div class="glass-card">
+            <h3 id="detail-date"></h3>
+            <div style="display:flex;gap:16px;margin:12px 0;flex-wrap:wrap">
+                <div><span class="muted" data-i18n="cal_label">Калории</span><br><strong id="detail-cal">0</strong></div>
+                <div><span class="muted" data-i18n="protein">Белки</span><br><strong id="detail-prot">0</strong></div>
+                <div><span class="muted" data-i18n="fat">Жиры</span><br><strong id="detail-fat">0</strong></div>
+                <div><span class="muted" data-i18n="carbs">Углеводы</span><br><strong id="detail-carb">0</strong></div>
+                <div><span class="muted" data-i18n="water">Вода</span><br><strong id="detail-water">0</strong></div>
+            </div>
+            <div id="detail-weight" class="hidden"><span class="muted" data-i18n="weight_title">Вес</span>: <strong id="detail-w"></strong></div>
+            <h4 style="margin-top:16px" data-i18n="food_title">Еда</h4>
+            <div id="detail-meals"></div>
+        </div>
+    </div>
+</section>
+{% endblock %}

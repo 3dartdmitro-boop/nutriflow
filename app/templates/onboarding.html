@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}NutriFlow{% endblock %}
+{% block content %}
+<div class="container" style="max-width:480px;margin:0 auto;padding:16px;">
+
+    <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:56px;margin-bottom:8px;">&#127823;</div>
+        <h1 style="font-size:26px;margin:0;" data-i18n="calc_title">Расчёт нормы</h1>
+        <p class="muted" style="margin-top:6px;font-size:14px;" data-i18n="calc_subtitle">Заполни данные для расчёта КБЖУ</p>
+    </div>
+
+    <div class="card" style="padding:20px;">
+
+        <label class="field-label" data-i18n="gender">Пол</label>
+        <div style="display:flex;gap:10px;margin-bottom:20px;">
+            <button type="button" class="btn btn-glass" id="btn-male" onclick="setG('male')" style="flex:1;padding:14px;font-size:15px;opacity:0.45;transition:all .2s;">
+                &#128587;&#8205;&#9794;&#65039; <span data-i18n="male">Мужской</span>
+            </button>
+            <button type="button" class="btn btn-glass" id="btn-female" onclick="setG('female')" style="flex:1;padding:14px;font-size:15px;opacity:0.45;transition:all .2s;">
+                &#128587;&#8205;&#9792;&#65039; <span data-i18n="female">Женский</span>
+            </button>
+        </div>
+
+        <label class="field-label" data-i18n="age">Возраст</label>
+        <input type="number" id="inp-age" class="input" placeholder="25" min="10" max="120">
+
+        <label class="field-label" data-i18n="height_cm">Рост (см)</label>
+        <input type="number" id="inp-height" class="input" placeholder="175" min="100" max="250">
+
+        <label class="field-label" data-i18n="current_weight">Текущий вес (кг)</label>
+        <input type="number" id="inp-weight" class="input" placeholder="70" step="0.1" min="30" max="300">
+
+        <label class="field-label" data-i18n="goal">Цель</label>
+        <div style="display:flex;gap:8px;margin-bottom:24px;">
+            <button type="button" class="btn btn-glass" id="btn-lose" onclick="setGoal('lose')" style="flex:1;padding:12px;font-size:13px;opacity:0.45;transition:all .2s;">
+                &#11015;&#65039; <span data-i18n="goal_lose">Похудеть</span>
+            </button>
+            <button type="button" class="btn btn-glass" id="btn-maintain" onclick="setGoal('maintain')" style="flex:1;padding:12px;font-size:13px;opacity:0.45;transition:all .2s;">
+                &#9878;&#65039; <span data-i18n="goal_maintain">Удержать</span>
+            </button>
+            <button type="button" class="btn btn-glass" id="btn-gain" onclick="setGoal('gain')" style="flex:1;padding:12px;font-size:13px;opacity:0.45;transition:all .2s;">
+                &#11014;&#65039; <span data-i18n="goal_gain">Набрать</span>
+            </button>
+        </div>
+
+        <button class="btn btn-primary full-width" onclick="doCalc()" style="padding:16px;font-size:17px;font-weight:700;" data-i18n="calculate">Рассчитать</button>
+    </div>
+
+    <div id="result" class="card" style="display:none;padding:24px;margin-top:16px;text-align:center;">
+        <h2 style="margin-bottom:4px;" data-i18n="your_norm">Твоя норма</h2>
+        <p class="muted" style="font-size:13px;margin-bottom:16px;" data-i18n="daily_norm">Суточная норма питания</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+            <div class="card" style="padding:16px;">
+                <div style="font-size:32px;font-weight:800;color:#ff9f0a;" id="res-cal">0</div>
+                <span class="muted" style="font-size:12px;" data-i18n="kcal">ккал</span>
+            </div>
+            <div class="card" style="padding:16px;">
+                <div style="font-size:32px;font-weight:800;color:#34c759;" id="res-prot">0</div>
+                <span class="muted" style="font-size:12px;" data-i18n="protein">Белки</span>
+            </div>
+            <div class="card" style="padding:16px;">
+                <div style="font-size:32px;font-weight:800;color:#ff375f;" id="res-fat">0</div>
+                <span class="muted" style="font-size:12px;" data-i18n="fat">Жиры</span>
+            </div>
+            <div class="card" style="padding:16px;">
+                <div style="font-size:32px;font-weight:800;color:#0a84ff;" id="res-carb">0</div>
+                <span class="muted" style="font-size:12px;" data-i18n="carbs">Углеводы</span>
+            </div>
+        </div>
+        <a href="/dashboard" class="btn btn-primary full-width" style="padding:16px;font-size:17px;font-weight:700;" data-i18n="go_dashboard">На главную</a>
+    </div>
+</div>
+
+<style>
+.field-label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;margin-top:16px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.field-label:first-child{margin-top:0;}
+.input{width:100%;padding:14px 16px;border-radius:12px;border:1px solid rgba(128,128,128,0.2);background:var(--card);color:var(--text);font-size:16px;box-sizing:border-box;transition:border-color .2s;}
+.input:focus{outline:none;border-color:var(--accent);}
+</style>
+
+<script>
+var _g="",_gl="";
+function setG(g){
+    _g=g;
+    document.getElementById("btn-male").style.opacity=g==="male"?"1":"0.45";
+    document.getElementById("btn-female").style.opacity=g==="female"?"1":"0.45";
+    document.getElementById("btn-male").style.transform=g==="male"?"scale(1.03)":"scale(1)";
+    document.getElementById("btn-female").style.transform=g==="female"?"scale(1.03)":"scale(1)";
+}
+function setGoal(g){
+    _gl=g;
+    ["lose","maintain","gain"].forEach(function(k){
+        var b=document.getElementById("btn-"+k);
+        b.style.opacity=g===k?"1":"0.45";
+        b.style.transform=g===k?"scale(1.03)":"scale(1)";
+    });
+}
+async function doCalc(){
+    var age=parseInt(document.getElementById("inp-age").value);
+    var height=parseFloat(document.getElementById("inp-height").value);
+    var weight=parseFloat(document.getElementById("inp-weight").value);
+    if(!_g||!_gl||!age||!height||!weight){
+        alert(typeof isRu==="function"&&isRu()?"\u0417\u0430\u043f\u043e\u043b\u043d\u0438 \u0432\u0441\u0435 \u043f\u043e\u043b\u044f!":"Fill all fields!");
+        return;
+    }
+    await fetch("/api/reset/all",{method:"DELETE"});
+    var r=await fetch("/api/calculate",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({gender:_g,age:age,height:height,weight:weight,goal:_gl})
+    });
+    var d=await r.json();
+    document.getElementById("res-cal").textContent=d.calories;
+    document.getElementById("res-prot").textContent=d.protein;
+    document.getElementById("res-fat").textContent=d.fat;
+    document.getElementById("res-carb").textContent=d.carbs;
+    localStorage.setItem("user_cal",d.calories);
+    localStorage.setItem("user_prot",d.protein);
+    localStorage.setItem("user_fat",d.fat);
+    localStorage.setItem("user_carbs",d.carbs);
+    document.getElementById("result").style.display="block";
+    document.getElementById("result").scrollIntoView({behavior:"smooth"});
+}
+</script>
+{% endblock %}

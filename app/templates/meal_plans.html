@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}NutriFlow{% endblock %}
+{% block content %}
+<section class="page" id="meal-plans-page" style="padding-bottom:100px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h1 style="font-size:24px;margin:0" data-i18n="meal_plans_title"></h1>
+        <a href="/dashboard" style="color:var(--accent);text-decoration:none;font-size:14px" data-i18n="back_link"></a>
+    </div>
+    <p class="muted" style="margin-bottom:20px" data-i18n="meal_plans_desc"></p>
+    <div id="plans-list"></div>
+    <div id="plan-detail" class="hidden"></div>
+</section>
+
+<script>
+var token = localStorage.getItem("token");
+var currentLang = localStorage.getItem("lang") || "ru";
+var origLang = currentLang;
+var currentPlanId = null;
+setInterval(function(){
+    var l = localStorage.getItem("lang") || "ru";
+    if(l !== origLang){ origLang = l; currentLang = l; if(currentPlanId){showPlan(currentPlanId);}else{loadPlans();} }
+}, 500);
+
+function MT(ru, en){ return currentLang==="en" ? en : ru; }
+
+function loadPlans() {
+    currentPlanId = null;
+    document.getElementById("plans-list").classList.remove("hidden");
+    document.getElementById("plan-detail").classList.add("hidden");
+
+    fetch("/api/meal-plans")
+    .then(function(r){return r.json()})
+    .then(function(plans){
+        var html = "";
+        var kcU = MT("\u043a\u043a\u0430\u043b","kcal");
+        var gU = MT("\u0433","g");
+        plans.forEach(function(p){
+            var name = currentLang==="en" ? (p.name_en||p.name) : p.name;
+            var desc = currentLang==="en" ? (p.description_en||p.description) : p.description;
+            html += '<div class="card" style="padding:16px;margin-bottom:12px;cursor:pointer;border-radius:16px" onclick="showPlan('+p.id+')">';
+            html += '<div style="display:flex;align-items:center;gap:12px">';
+            html += '<span style="font-size:36px">'+p.icon+'</span>';
+            html += '<div style="flex:1">';
+            html += '<h3 style="margin:0;font-size:17px">'+name+'</h3>';
+            html += '<p class="muted" style="margin:4px 0 0;font-size:13px">'+desc+'</p>';
+            html += '<div style="display:flex;gap:12px;margin-top:8px;font-size:12px">';
+            html += '<span style="color:var(--accent)">\ud83d\udd25 '+p.total_cal+' '+kcU+'</span>';
+            html += '<span style="color:#4ecdc4">\ud83e\udd69 '+p.total_protein+gU+'</span>';
+            html += '<span style="color:#ffe66d">\ud83e\uddc8 '+p.total_fat+gU+'</span>';
+            html += '<span style="color:#ff6b6b">\ud83c\udf5e '+p.total_carbs+gU+'</span>';
+            html += '</div></div>';
+            html += '<span style="font-size:20px;color:var(--muted)">\u2192</span>';
+            html += '</div></div>';
+        });
+        document.getElementById("plans-list").innerHTML = html;
+    });
+}
+
+function showPlan(id) {
+    currentPlanId = id;
+    document.getElementById("plans-list").classList.add("hidden");
+    document.getElementById("plan-detail").classList.remove("hidden");
+
+    fetch("/api/meal-plans/"+id)
+    .then(function(r){return r.json()})
+    .then(function(p){
+        var name = currentLang==="en" ? (p.name_en||p.name) : p.name;
+        var kcU = MT("\u043a\u043a\u0430\u043b","kcal");
+        var gU = MT("\u0433","g");
+        var html = '';
+        html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">';
+        html += '<a href="#" onclick="loadPlans();return false" style="color:var(--accent);text-decoration:none;font-size:20px">\u2190</a>';
+        html += '<span style="font-size:28px">'+p.icon+'</span>';
+        html += '<h2 style="margin:0;font-size:22px">'+name+'</h2>';
+        html += '</div>';
+
+        html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;text-align:center">';
+        html += '<div class="card" style="padding:10px;border-radius:12px"><div style="font-size:18px;font-weight:700;color:var(--accent)">'+p.total_cal+'</div><div class="muted" style="font-size:11px">'+kcU+'</div></div>';
+        html += '<div class="card" style="padding:10px;border-radius:12px"><div style="font-size:18px;font-weight:700;color:#4ecdc4">'+p.total_protein+gU+'</div><div class="muted" style="font-size:11px">'+MT("\u0431\u0435\u043b\u043a\u0438","protein")+'</div></div>';
+        html += '<div class="card" style="padding:10px;border-radius:12px"><div style="font-size:18px;font-weight:700;color:#ffe66d">'+p.total_fat+gU+'</div><div class="muted" style="font-size:11px">'+MT("\u0436\u0438\u0440\u044b","fat")+'</div></div>';
+        html += '<div class="card" style="padding:10px;border-radius:12px"><div style="font-size:18px;font-weight:700;color:#ff6b6b">'+p.total_carbs+gU+'</div><div class="muted" style="font-size:11px">'+MT("\u0443\u0433\u043b\u0435\u0432\u043e\u0434\u044b","carbs")+'</div></div>';
+        html += '</div>';
+
+        p.meals.forEach(function(meal){
+            var mealName = currentLang==="en" ? (meal.type_name_en||meal.type_name) : meal.type_name;
+            html += '<div class="card" style="padding:14px;margin-bottom:10px;border-radius:14px">';
+            html += '<h3 style="margin:0 0 10px;font-size:15px">'+meal.icon+' '+mealName+'</h3>';
+            var mealCal = 0;
+            meal.items.forEach(function(item){
+                var itemName = currentLang==="en" ? (item.name_en||item.name) : item.name;
+                mealCal += item.cal;
+                html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">';
+                html += '<span style="font-size:14px">'+itemName+'</span>';
+                html += '<div style="text-align:right;font-size:12px">';
+                html += '<span style="color:var(--accent)">'+item.cal+' '+kcU+'</span><br>';
+                html += '<span class="muted">'+MT("\u0411","P")+':'+item.protein+' '+MT("\u0416","F")+':'+item.fat+' '+MT("\u0423","C")+':'+item.carbs+'</span>';
+                html += '</div></div>';
+            });
+            html += '<div style="text-align:right;margin-top:8px;font-size:13px;color:var(--accent);font-weight:600">'+MT("\u0418\u0442\u043e\u0433\u043e","Total")+': '+mealCal+' '+kcU+'</div>';
+            html += '</div>';
+        });
+
+        html += '<button onclick="applyPlan('+p.id+')" class="btn btn-primary full-width" style="margin-top:16px;padding:14px;font-size:16px;border-radius:14px">'+MT("\u2705 \u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c \u0432\u0435\u0441\u044c \u043f\u043b\u0430\u043d \u0432 \u0434\u043d\u0435\u0432\u043d\u0438\u043a","\u2705 Add full plan to diary")+'</button>';
+        html += '<p id="apply-msg" style="text-align:center;margin-top:10px;font-size:14px"></p>';
+
+        document.getElementById("plan-detail").innerHTML = html;
+    });
+}
+
+function applyPlan(id) {
+    fetch("/api/meal-plans/"+id+"/apply", {
+        method: "POST",
+        headers: {"Authorization": "Bearer "+token}
+    })
+    .then(function(r){return r.json()})
+    .then(function(d){
+        var msg = document.getElementById("apply-msg");
+        if(d.ok){
+            msg.style.color = "#30d158";
+            msg.textContent = MT("\u2705 \u041f\u043b\u0430\u043d \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d \u0432 \u0434\u043d\u0435\u0432\u043d\u0438\u043a!","\u2705 Plan added to your diary!");
+            setTimeout(function(){window.location.href="/dashboard"},1500);
+        } else {
+            msg.style.color = "#ff453a";
+            msg.textContent = d.error || MT("\u041e\u0448\u0438\u0431\u043a\u0430","Error");
+        }
+    })
+    .catch(function(e){
+        var msg = document.getElementById("apply-msg");
+        msg.style.color = "#ff453a";
+        msg.textContent = MT("\u041e\u0448\u0438\u0431\u043a\u0430","Error") + ": " + e;
+    });
+}
+
+loadPlans();
+</script>
+{% endblock %}

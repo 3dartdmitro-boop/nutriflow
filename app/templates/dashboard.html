@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}NutriFlow{% endblock %}
+{% block content %}
+<section class="dashboard">
+    <div class="topbar">
+        <div><p class="muted" id="today-date"></p><h2 data-i18n="your_day">Твой день</h2></div>
+        <a href="/profile" id="dash-avatar" title="Profile" style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--green));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;overflow:hidden;flex-shrink:0;text-decoration:none"></a>
+    </div>
+    <div class="progress-ring-container">
+        <svg class="progress-ring" width="180" height="180">
+            <circle class="progress-ring-bg" cx="90" cy="90" r="78"/>
+            <circle class="progress-ring-fill" id="cal-ring" cx="90" cy="90" r="78"/>
+        </svg>
+        <div class="progress-ring-text">
+            <strong id="cal-eaten">0</strong>
+            <span><span data-i18n="of">из</span> <span id="cal-target">2000</span> <span data-i18n="kcal">ккал</span></span>
+        </div>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-card"><span data-i18n="protein">Белки</span><strong id="prot-eaten">0</strong><small id="prot-target"></small><div class="mini-bar"><div class="mini-bar-fill prot-fill" id="prot-bar"></div></div></div>
+        <div class="stat-card"><span data-i18n="fat">Жиры</span><strong id="fat-eaten">0</strong><small id="fat-target"></small><div class="mini-bar"><div class="mini-bar-fill fat-fill" id="fat-bar"></div></div></div>
+        <div class="stat-card"><span data-i18n="carbs">Углеводы</span><strong id="carb-eaten">0</strong><small id="carb-target"></small><div class="mini-bar"><div class="mini-bar-fill carb-fill" id="carb-bar"></div></div></div>
+        <div class="stat-card"><span data-i18n="water">Вода</span><strong id="water-current">0</strong><small id="water-target-label">/8ст</small><div class="mini-bar"><div class="mini-bar-fill water-fill" id="water-bar"></div></div></div>
+    </div>
+
+    <div class="glass-card" style="margin-top:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3 style="margin:0" data-i18n="plan_section_title">📋 План на день</h3>
+            <span id="plan-progress" class="muted" style="font-size:13px"></span>
+        </div>
+        <div id="day-plan-list">
+            <p class="muted" style="text-align:center;font-size:14px;padding:20px 0">Нет плана. Выберите в "Планы питания"</p>
+        </div>
+    </div>
+
+    <div class="glass-card" style="margin-top:16px">
+        <h3 data-i18n="quick_actions">Быстрые действия</h3>
+        <div class="quick-actions">
+            <a href="/food" class="quick-btn" data-i18n="qa_food">+ Еда</a>
+            <a href="/water" class="quick-btn" data-i18n="qa_water">+ Вода</a>
+            <a href="/weight" class="quick-btn" data-i18n="qa_weight">+ Вес</a>
+        </div>
+    </div>
+    <div style="display:flex;gap:10px;margin:20px 0 12px">
+        <a href="/history" class="btn btn-glass" style="flex:1;text-align:center" data-i18n="history_title">История</a>
+        <a href="/goals" class="btn btn-glass" style="flex:1;text-align:center" data-i18n="goals_title">Цели</a>
+    </div>
+    <a href="/meal-plans" class="btn btn-glass full-width" style="text-align:center;text-decoration:none;display:block;font-size:15px">🥗 <span data-i18n="meal_plans_btn">Планы питания</span></a>
+    <button id="reset-day-btn" class="btn btn-glass full-width" style="margin-top:16px;font-size:14px;padding:12px;color:var(--red)">🗑 <span data-i18n="reset_day">Сбросить день</span></button>
+</section>
+
+<script>
+(function(){
+    var av = document.getElementById("dash-avatar");
+    if(!av) return;
+    var tk = localStorage.getItem("token");
+    if(!tk){ av.textContent="?"; return; }
+    fetch("/api/auth/me",{headers:{"Authorization":"Bearer "+tk}})
+    .then(function(r){return r.json()})
+    .then(function(u){
+        if(u.avatar_path){
+            av.style.background="none";
+            av.innerHTML='<img src="'+u.avatar_path+'?v='+Date.now()+'" style="width:100%;height:100%;object-fit:cover">';
+        } else if(u.name){
+            av.textContent=u.name.charAt(0).toUpperCase();
+        } else { av.textContent="?"; }
+    }).catch(function(){ av.textContent="?"; });
+})();
+
+(function(){
+    var token = localStorage.getItem("token");
+    if(!token) return;
+    var lang = localStorage.getItem("lang") || "ru";
+
+    function loadPlan(){
+        fetch("/api/day-plan/today", {headers:{"Authorization":"Bearer "+token}})
+        .then(function(r){return r.json()})
+        .then(function(items){
+            var container = document.getElementById("day-plan-list");
+            var progressEl = document.getElementById("plan-progress");
+            if(!container) return;
+
+            if(!items || !items.length || items.error){
+                container.innerHTML = '<p class="muted" style="text-align:center;font-size:14px;padding:20px 0">' +
+                    (T("no_plan")) + '</p>';
+                if(progressEl) progressEl.textContent = "";
+                return;
+            }
+
+            var total = items.length;
+            var done = 0;
+            items.forEach(function(i){ if(i.eaten) done++; });
+            if(progressEl) progressEl.textContent = done + "/" + total + " "+T("plan_eaten");
+
+            var groups = {};
+            var mealOrder = ["breakfast","lunch","snack","dinner"];
+            var mealIcons = {"breakfast":"🌅","lunch":"☀️","snack":"🍎","dinner":"🌙"};
+            var mealNamesRu = {"breakfast":"Завтрак","lunch":"Обед","snack":"Перекус","dinner":"Ужин"};
+            var mealNamesEn = {"breakfast":"Breakfast","lunch":"Lunch","snack":"Snack","dinner":"Dinner"};
+
+            items.forEach(function(item){
+                var mt = item.meal_type || "other";
+                if(!groups[mt]) groups[mt] = [];
+                groups[mt].push(item);
+            });
+
+            var kcalLabel = lang==="en" ? "kcal" : "ккал";
+            var html = "";
+
+            mealOrder.forEach(function(mt){
+                if(!groups[mt]) return;
+                var icon = mealIcons[mt] || "🍽";
+                var mname = lang==="en" ? (mealNamesEn[mt]||mt) : (mealNamesRu[mt]||mt);
+
+                html += '<div style="margin-bottom:16px">';
+                html += '<div style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--accent)">' + icon + ' ' + mname + '</div>';
+
+                groups[mt].forEach(function(item){
+                    var checked = item.eaten ? 'checked' : '';
+                    var opacity = item.eaten ? 'opacity:0.5;text-decoration:line-through' : '';
+                    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)" id="plan-item-'+item.id+'">';
+                    html += '<input type="checkbox" '+checked+' onchange="toggleEaten('+item.id+')" style="width:20px;height:20px;accent-color:var(--green);cursor:pointer;flex-shrink:0">';
+                    html += '<div style="flex:1;'+opacity+'" id="plan-text-'+item.id+'">';
+                    var displayName = lang==="en" && item.name_en ? item.name_en : item.name;
+                    html += '<div style="font-size:13px">'+displayName+'</div>';
+                    html += '<div class="muted" style="font-size:11px">'+Math.round(item.cal)+' '+kcalLabel+' · '+(lang==='en'?'P':'\u0411')+Math.round(item.protein)+' '+(lang==='en'?'F':'\u0416')+Math.round(item.fat)+' '+(lang==='en'?'C':'\u0423')+Math.round(item.carbs)+'</div>';
+                    html += '</div></div>';
+                });
+
+                html += '</div>';
+                delete groups[mt];
+            });
+
+            Object.keys(groups).forEach(function(mt){
+                html += '<div style="margin-bottom:16px">';
+                html += '<div style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--accent)">🍽 '+mt+'</div>';
+                groups[mt].forEach(function(item){
+                    var checked = item.eaten ? 'checked' : '';
+                    var opacity = item.eaten ? 'opacity:0.5;text-decoration:line-through' : '';
+                    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">';
+                    html += '<input type="checkbox" '+checked+' onchange="toggleEaten('+item.id+')" style="width:20px;height:20px;accent-color:var(--green);cursor:pointer;flex-shrink:0">';
+                    html += '<div style="flex:1;'+opacity+'" id="plan-text-'+item.id+'"><div style="font-size:13px">'+item.name+'</div>';
+                    html += '<div class="muted" style="font-size:11px">'+Math.round(item.cal)+' '+kcalLabel+'</div>';
+                    html += '</div></div>';
+                });
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        })
+        .catch(function(e){ console.error("Plan error:", e); });
+    }
+
+    window.toggleEaten = function(id){
+        fetch("/api/day-plan/toggle/"+id, {method:"POST", headers:{"Authorization":"Bearer "+token}})
+        .then(function(r){return r.json()})
+        .then(function(data){
+            if(data.ok){
+                var textEl = document.getElementById("plan-text-"+id);
+                if(textEl){
+                    if(data.eaten){
+                        textEl.style.opacity = "0.5";
+                        textEl.style.textDecoration = "line-through";
+                    } else {
+                        textEl.style.opacity = "1";
+                        textEl.style.textDecoration = "none";
+                    }
+                }
+                if(typeof loadDashboard === "function") loadDashboard();
+                loadPlan();
+            }
+        });
+    };
+
+    loadPlan();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}NutriFlow{% endblock %}
+{% block content %}
+<div class="container">
+
+    <div class="card" style="text-align:center;margin-bottom:16px;padding:20px;">
+        <div style="font-size:48px;">🔥</div>
+        <div id="streak-num" style="font-size:38px;font-weight:800;">0</div>
+        <div id="streak-label" style="color:#888;font-size:14px;"></div>
+        <div id="streak-msg" style="color:#ff9f0a;font-weight:600;margin-top:4px;font-size:14px;"></div>
+    </div>
+
+    <div class="card" style="padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <h2 id="ach-title" style="margin:0;"></h2>
+            <span id="ach-counter" style="font-size:13px;color:#888;"></span>
+        </div>
+        <div id="ach-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;"></div>
+        <div id="ach-detail" style="display:none;margin-top:16px;padding:16px;background:var(--card);border-radius:16px;border:1px solid var(--line);">
+            <div style="display:flex;align-items:center;gap:14px;">
+                <div id="ad-icon" style="font-size:40px;min-width:46px;text-align:center;"></div>
+                <div style="flex:1;">
+                    <div id="ad-name" style="font-weight:700;font-size:15px;"></div>
+                    <div id="ad-desc" style="font-size:12px;color:#888;margin-top:3px;"></div>
+                </div>
+            </div>
+            <div style="margin-top:12px;">
+                <div style="background:var(--line);border-radius:8px;height:10px;overflow:hidden;">
+                    <div id="ad-bar" style="height:100%;border-radius:8px;transition:width 0.3s;"></div>
+                </div>
+                <div id="ad-text" style="font-size:13px;color:#aaa;margin-top:6px;text-align:center;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+var ACH=[
+{i:"🍽️",k:"a_first_food",dk:"ad_first_food",t:"food_count",n:1},
+{i:"📅",k:"a_food_7",dk:"ad_food_7",t:"food_days",n:7},
+{i:"🏅",k:"a_food_30",dk:"ad_food_30",t:"food_days",n:30},
+{i:"💧",k:"a_first_water",dk:"ad_first_water",t:"water_count",n:1},
+{i:"🌊",k:"a_water_7",dk:"ad_water_7",t:"water_days",n:7},
+{i:"🏊",k:"a_water_30",dk:"ad_water_30",t:"water_days",n:30},
+{i:"⚖️",k:"a_first_weight",dk:"ad_first_weight",t:"weight_count",n:1},
+{i:"📊",k:"a_weight_10",dk:"ad_weight_10",t:"weight_count",n:10},
+{i:"🚰",k:"a_water_10l",dk:"ad_water_10l",t:"water_total",n:10000},
+{i:"🌟",k:"a_water_50l",dk:"ad_water_50l",t:"water_total",n:50000},
+{i:"🔥",k:"a_streak_3",dk:"ad_streak_3",t:"streak",n:3},
+{i:"💪",k:"a_streak_7",dk:"ad_streak_7",t:"streak",n:7}
+];
+
+var S={},si=0;
+
+function showDet(idx){
+    si=idx;var a=ACH[idx],c=S[a.t]||0,ok=c>=a.n;
+    var p=Math.min(100,Math.round((c/a.n)*100));
+    document.getElementById("ad-icon").textContent=a.i;
+    document.getElementById("ad-name").textContent=T(a.k)+(ok?" ✅":"");
+    document.getElementById("ad-name").style.color=ok?"#34c759":"var(--text)";
+    document.getElementById("ad-desc").textContent=T(a.dk);
+    document.getElementById("ad-bar").style.width=p+"%";
+    document.getElementById("ad-bar").style.background=ok?"#34c759":"#0071e3";
+    document.getElementById("ad-text").textContent=ok?T("ach_done"):c+" / "+a.n+" ("+p+"%)";
+    document.getElementById("ach-detail").style.display="block";
+    document.querySelectorAll(".ac").forEach(function(el,j){el.style.outline=j===idx?"2px solid #0071e3":"none";});
+}
+
+function renderGrid(){
+    var g=document.getElementById("ach-grid");g.innerHTML="";var dc=0;
+    ACH.forEach(function(a,idx){
+        var c=S[a.t]||0,ok=c>=a.n;if(ok)dc++;
+        var p=Math.min(100,Math.round((c/a.n)*100));
+        var d=Math.round(p*3.6);
+        var bg=ok?"conic-gradient(#34c759 360deg)":"conic-gradient(#0071e3 "+d+"deg,#333 "+d+"deg)";
+        var el=document.createElement("div");
+        el.className="ac";
+        el.style.cssText="display:flex;flex-direction:column;align-items:center;cursor:pointer;padding:8px 0;border-radius:16px;";
+        el.innerHTML='<div style="width:46px;height:46px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;padding:3px;"><div style="width:38px;height:38px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:18px;'+(ok?"":"filter:grayscale(.7);opacity:.5;")+'">'+a.i+'</div></div><div style="font-size:9px;margin-top:3px;color:'+(ok?"#34c759":"#666")+';">'+(ok?"✅":p+"%")+'</div>';
+        el.onclick=function(){showDet(idx);};
+        g.appendChild(el);
+    });
+    document.getElementById("ach-counter").textContent=dc+" / "+ACH.length;
+    showDet(si);
+}
+
+async function load(){
+    document.getElementById("streak-label").textContent=T("days_streak");
+    document.getElementById("ach-title").textContent=T("ach_title_label");
+    try{
+        var r=await fetch("/api/goals/streak");var d=await r.json();var s=d.streak||0;
+        document.getElementById("streak-num").textContent=s;
+        var mk=s>=30?"streak_30":s>=14?"streak_14":s>=7?"streak_7":s>=3?"streak_3":s>=1?"streak_1":"streak_start";
+        document.getElementById("streak-msg").textContent=T(mk);
+    }catch(x){}
+    try{
+        var r=await fetch("/api/achievement-stats");
+        if(r.ok)S=await r.json();
+    }catch(x){}
+    renderGrid();
+}
+
+load();
+});
+</script>
+{% endblock %}

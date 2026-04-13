@@ -1,0 +1,93 @@
+﻿{% extends "base.html" %}
+{% block title %}NutriFlow{% endblock %}
+{% block content %}
+<div class="container">
+    <h1 id="pg-title" style="text-align:center;margin-bottom:16px;"></h1>
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
+        <button class="btn ptb active" onclick="window._setP(7)" id="tb7" style="padding:8px 16px;font-size:13px;" data-i18n="d7">7d</button>
+        <button class="btn ptb" onclick="window._setP(14)" id="tb14" style="padding:8px 16px;font-size:13px;" data-i18n="d14">14d</button>
+        <button class="btn ptb" onclick="window._setP(30)" id="tb30" style="padding:8px 16px;font-size:13px;" data-i18n="d30">30d</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;justify-content:center;">
+        <button class="btn pct active" onclick="window._setM('cal')" id="ct-cal" style="padding:8px 14px;">🔥</button>
+        <button class="btn pct" onclick="window._setM('pfc')" id="ct-pfc" style="padding:8px 14px;">🥗</button>
+        <button class="btn pct" onclick="window._setM('water')" id="ct-water" style="padding:8px 14px;">💧</button>
+        <button class="btn pct" onclick="window._setM('weight')" id="ct-weight" style="padding:8px 14px;">⚖️</button>
+    </div>
+    <div class="card" style="padding:16px;">
+        <h3 id="ch-title" style="margin:0 0 12px;"></h3>
+        <canvas id="pchart" height="200"></canvas>
+        <div id="ch-avg" style="text-align:center;color:#888;font-size:13px;margin-top:8px;"></div>
+    </div>
+</div>
+<style>
+.ptb,.pct{border-radius:10px;background:#2c2c2e;color:#888;border:none;cursor:pointer;}
+.ptb.active,.pct.active{background:#0071e3;color:#fff;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+var per=7,mode="cal",ch=null;
+
+document.getElementById("pg-title").textContent=T("progress_title");
+
+window._setP=function(p){
+    per=p;
+    document.querySelectorAll(".ptb").forEach(function(b){b.classList.remove("active");});
+    document.getElementById("tb"+p).classList.add("active");
+    doLoad();
+};
+window._setM=function(m){
+    mode=m;
+    document.querySelectorAll(".pct").forEach(function(b){b.classList.remove("active");});
+    document.getElementById("ct-"+m).classList.add("active");
+    doLoad();
+};
+
+async function doLoad(){
+    var ctx=document.getElementById("pchart").getContext("2d");
+    if(ch)ch.destroy();
+    var titles={cal:"ch_calories",pfc:"ch_macros",water:"ch_water",weight:"ch_weight"};
+    document.getElementById("ch-title").textContent=T(titles[mode]);
+
+    if(mode==="cal"){
+        var r=await fetch("/api/stats/calories?days="+per);var d=await r.json();
+        var lb=d.map(function(x){return x.date.slice(5);});
+        var vl=d.map(function(x){return x.calories;});
+        var avg=vl.length?Math.round(vl.reduce(function(a,b){return a+b;},0)/vl.length):0;
+        document.getElementById("ch-avg").textContent=T("avg_prefix")+avg+" "+T("avg_kcal");
+        ch=new Chart(ctx,{type:"bar",data:{labels:lb,datasets:[{label:T("cal_label"),data:vl,backgroundColor:"#0a84ff"}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    }
+    else if(mode==="pfc"){
+        var r=await fetch("/api/stats/calories?days="+per);var d=await r.json();
+        var lb=d.map(function(x){return x.date.slice(5);});
+        ch=new Chart(ctx,{type:"bar",data:{labels:lb,datasets:[
+            {label:T("protein"),data:d.map(function(x){return x.protein;}),backgroundColor:"#34c759"},
+            {label:T("fat"),data:d.map(function(x){return x.fat;}),backgroundColor:"#ff9f0a"},
+            {label:T("carbs"),data:d.map(function(x){return x.carbs;}),backgroundColor:"#0a84ff"}
+        ]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
+        document.getElementById("ch-avg").textContent="";
+    }
+    else if(mode==="water"){
+        var r=await fetch("/api/stats/water?days="+per);var d=await r.json();
+        var lb=d.map(function(x){return x.date.slice(5);});
+        var vl=d.map(function(x){return x.water_ml;});
+        var avg=vl.length?Math.round(vl.reduce(function(a,b){return a+b;},0)/vl.length):0;
+        document.getElementById("ch-avg").textContent=T("avg_prefix")+avg+" "+T("avg_ml");
+        ch=new Chart(ctx,{type:"bar",data:{labels:lb,datasets:[{label:T("ml"),data:vl,backgroundColor:"#5ac8fa"}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    }
+    else if(mode==="weight"){
+        var r=await fetch("/api/stats/weight?days="+per);var d=await r.json();
+        if(d.length===0){document.getElementById("ch-avg").textContent=T("no_data");return;}
+        var lb=d.map(function(x){return x.date.slice(5);});
+        var vl=d.map(function(x){return x.weight;});
+        document.getElementById("ch-avg").textContent="";
+        ch=new Chart(ctx,{type:"line",data:{labels:lb,datasets:[{label:T("weight_kg"),data:vl,borderColor:"#ff375f",backgroundColor:"rgba(255,55,95,0.1)",fill:true,tension:0.3}]},options:{responsive:true,plugins:{legend:{display:false}}}});
+    }
+}
+doLoad();
+
+});
+</script>
+{% endblock %}
